@@ -1,0 +1,22 @@
+name: Front End CI
+on: workflow_dispatch
+jobs:
+  install-dependency:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+      - name: Install npm dependency
+        run: npm i
+  unit-test:
+    runs-on: ubuntu-latest
+    needs: install-dependency
+    steps:
+      - name: Run unit test
+        run: npm run test
+  build: 
+    runs-on: ubuntu-latest
+    needs: unit-test
+    steps: 
+      - name: Run build
+        run: npm run build
