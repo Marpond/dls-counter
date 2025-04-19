@@ -1,41 +1,28 @@
+using StackExchange.Redis;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect("redis:6379"));
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
+app.MapPost("/increment", async (IConnectionMultiplexer redis) =>
 {
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
+    var enabled = bool.TryParse(
+        Environment.GetEnvironmentVariable("INCREMENT"), 
+        out var flag
+    ) && flag;
 
-app.UseHttpsRedirection();
+    if (!enabled)
+        return Results.Forbid();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
-    {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
-    })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
+    var db = redis.GetDatabase();
+    var newValue = await db.StringIncrementAsync("counter");
+    return Results.Ok(newValue);
+})
+.WithName("Increment")
+.WithOpenApi();
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}

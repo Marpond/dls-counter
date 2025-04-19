@@ -1,11 +1,14 @@
 ﻿services:
   api:
-    image: api
     build:
       context: .
       dockerfile: api/Api/Dockerfile
+    env_file:
+      - api/Api/.env
     depends_on:
       - redis
+    ports:
+      - "8080:8080"
 
   redis:
     image: redis:latest
