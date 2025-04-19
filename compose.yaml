@@ -4,3 +4,16 @@
     build:
       context: .
       dockerfile: api/Api/Dockerfile
+    depends_on:
+      - redis
+
+  redis:
+    image: redis:latest
+    ports:
+      - "6379:6379"
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+      retries: 5
