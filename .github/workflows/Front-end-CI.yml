@@ -1,5 +1,16 @@
 name: Front End CI
-on: workflow_dispatch
+
+defaults:
+  run:
+    working-directory: ./CounterService.Frontend
+
+on: 
+  push:
+    branches:
+      - 'initial/web'
+    # tags:
+      # - v1.**
+      
 jobs:
   install-dependency:
     runs-on: ubuntu-latest
