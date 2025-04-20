@@ -1,0 +1,56 @@
+name: Front End
+
+on: 
+  push:
+    branches: ["*/web/*"]
+  pull_request: 
+    branches: ["*/web"]
+  workflow_dispatch:
+      
+jobs:
+  ci:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: ./CounterService.Frontend
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 2 # Fetch the last 2 commits to get the PR base commit
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: 20
+          cache: 'npm'
+          cache-dependency-path: frontend/package-lock.json
+  
+      - name: Install dependencies
+        run: npm ci # using npm ci for faster installs
+      
+      - uses: actions/cache@v3
+        with:
+          path: |
+            node_modules
+            .npm
+          key: ${{ runner.os }}-node-${{ hashFiles('**/package-lock.json') }}
+
+      - name: Run linters
+        run: npm run lint
+
+      - name: Run unit test
+        run: npm test -- --watchAll=false --coverage
+
+      - uses: actions/upload-artifact@v3
+        with:
+          name: coverage-report
+          path: coverage
+
+      - name: Build Artifacts
+        run: npm run build
+        env:
+          NODE_ENV: production # Set NODE_ENV to production for the build step
+          CI: true # Set CI to true to ensure the build fails on warnings
+
+
