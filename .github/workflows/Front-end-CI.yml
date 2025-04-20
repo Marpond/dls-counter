@@ -2,7 +2,7 @@ name: Front End
 
 on: 
   push:
-    branches: ["*/web/*"]
+    branches: ["*/web*"]
   pull_request: 
     branches: ["*/web"]
   workflow_dispatch:
@@ -42,10 +42,10 @@ jobs:
       - name: Run unit test
         run: npm test -- --watchAll=false --coverage
 
-      - uses: actions/upload-artifact@v3
-        with:
-          name: coverage-report
-          path: coverage
+      # - uses: actions/upload-artifact@v3
+      #   with:
+      #     name: coverage-report
+      #     path: coverage
 
       - name: Build Artifacts
         run: npm run build
