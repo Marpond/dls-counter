@@ -40,7 +40,7 @@ jobs:
         run: npm run lint
 
       - name: Run unit test
-        run: npm test -- --watchAll=false --coverage
+        run: npm test --watchAll=false --coverage
 
       # - uses: actions/upload-artifact@v3
       #   with:
