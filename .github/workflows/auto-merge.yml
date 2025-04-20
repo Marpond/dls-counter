@@ -1,0 +1,56 @@
+# For enable auto-merge on pull request we need set github allow auto-merge.
+# project settings -> branches -> default branch -> enable auto-merge
+# For more details: https://docs.github.com/en/actions/learn-github-actions/understanding-github-actions#permissions
+
+
+name: Auto Merge on Approval
+
+on:
+  pull_request_review:
+    types: [submitted]  # trigger when a review is submitted
+
+jobs:
+  auto-merge:
+
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write  # to allow the action to modify the pull request
+      pull-requests: write 
+    
+    steps:
+    - name: Check pull request mergeable status
+      id: pr-details
+      uses: actions/github-script@v6
+      with:
+        # This script checks if the pull request is mergeable
+        # and returns the result as an output
+        # The mergeable means that the pull request can be merged without conflicts
+        # The script uses the GitHub API to get the pull request details
+        script: |
+          const pr = await github.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.payload.pull_request.number
+          });
+          return pr.data.mergeable;
+
+    - name: Enable auto-merge
+      # Auto-merge conditions:
+      # 1. The review is approved
+      # 2. The base branch is '*/web'
+      # 3. The pull request is mergeable
+      if: |
+        github.event.review.state == 'approved' &&
+        github.event.pull_request.base.ref == '*/web' &&
+        steps.pr-details.outputs.result == 'true'
+      uses: "peter-evans/enable-pull-request-automerge@v2"
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }} # GitHub token to authenticate the action
+        # The pull request number to enable auto-merge, this is the number of the pull request that triggered the workflow
+        pull-request-number: ${{ github.event.pull_request.number }}
+        # The merge method to use when merging the pull request
+        # The merge method can be one of the following:
+        # 1. merge (default)
+        # 2. squash: squash all commits into one commit, then merge it into the base branch
+        # 3. rebase: rebase the commits on top of the base branch, then merge it into the base branch
+        merge-method: "squash"
