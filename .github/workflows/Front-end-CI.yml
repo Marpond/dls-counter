@@ -6,10 +6,10 @@ defaults:
 
 on: 
   push:
-    branches:
-      - 'initial/web'
-    # tags:
-      # - v1.**
+    branches: ["*/web/*"]
+  pull_request: 
+    branches: ["*/web"]
+  workflow_dispatch:
       
 jobs:
   install-dependency:
