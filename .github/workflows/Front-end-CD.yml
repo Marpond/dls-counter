@@ -7,16 +7,16 @@ name: Front End CD
 
 on:
   push:
-    branches: [ "*/web" ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
-  pull_request:
-    branches: [ "*/web" ]
+  #   branches: [ "*/web" ]
+  #   # Publish semver tags as releases.
+  #   tags: [ 'v*.*.*' ]
+  # pull_request:
+  #   branches: [ "*/web" ]
   workflow_dispatch:
   workflow_run:
-    workflows: ["Front End CI"]  # 依赖第一个 workflow 的名字
+    workflows: ["Front End CI"] 
     types:
-      - completed  # 监听 Workflow A 完成的事件
+      - completed 
 
 env:
   # Use docker.io for Docker Hub if empty
