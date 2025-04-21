@@ -6,12 +6,6 @@ name: Front End CD
 # documentation.
 
 on:
-  push:
-    branches: [ "*/web" ]
-    # Publish semver tags as releases.
-    tags: [ 'v*.*.*' ]
-  pull_request:
-    branches: [ "*/web" ]
   workflow_dispatch:
   workflow_run:
     workflows: ["Front End CI"]  # 依赖第一个 workflow 的名字
