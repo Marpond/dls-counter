@@ -14,7 +14,7 @@ on:
     branches: [ "*/web" ]
   workflow_dispatch:
   workflow_run:
-    workflows: ["Workflow A"]  # 依赖第一个 workflow 的名字
+    workflows: ["Front End CI"]  # 依赖第一个 workflow 的名字
     types:
       - completed  # 监听 Workflow A 完成的事件
 
