@@ -1,41 +1,47 @@
+using StackExchange.Redis;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
+builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer.Connect("redis:6379"));
 
 var app = builder.Build();
 
-if (app.Environment.IsDevelopment())
-{
-    app.UseSwagger();
-    app.UseSwaggerUI();
-}
-
-app.UseHttpsRedirection();
-
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
-app.MapGet("/weatherforecast", () =>
+app.MapGet("/features", () =>
     {
-        var forecast = Enumerable.Range(1, 5).Select(index =>
-                new WeatherForecast
-                (
-                    DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-                    Random.Shared.Next(-20, 55),
-                    summaries[Random.Shared.Next(summaries.Length)]
-                ))
-            .ToArray();
-        return forecast;
+        var features = builder.Configuration.GetSection("Features").Get<Dictionary<string, bool>>();
+        return Results.Ok(features);
     })
-    .WithName("GetWeatherForecast")
-    .WithOpenApi();
+    .WithName("Features")
+    .WithOpenApi()
+    .Produces(StatusCodes.Status200OK);
+
+app.MapGet("/counter", async (IConnectionMultiplexer redis) =>
+    {
+        var db = redis.GetDatabase();
+        var value = await db.StringGetAsync("counter");
+        return value.TryParse(out int count) ? Results.Ok(count) : Results.BadRequest();
+    })
+    .WithName("Get")
+    .WithOpenApi()
+    .Produces(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status400BadRequest);
+
+app.MapPost("/counter/increment", async (IConnectionMultiplexer redis) =>
+    {
+        var enabled = builder.Configuration.GetValue<bool>("Features:Increment");
+
+        if (!enabled)
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
+
+        var db = redis.GetDatabase();
+        var newValue = await db.StringIncrementAsync("counter");
+        return Results.Ok(newValue);
+    })
+    .WithName("Increment")
+    .WithOpenApi()
+    .Produces(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status403Forbidden);
 
 app.Run();
-
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
