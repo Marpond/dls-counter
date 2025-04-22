@@ -1,6 +1,10 @@
 @Api_HostAddress = http://localhost:8080
 
-POST {{Api_HostAddress}}/increment
+POST {{Api_HostAddress}}/counter/increment
 Accept: application/json
+
+###
+
+GET {{Api_HostAddress}}/counter
 
 ###

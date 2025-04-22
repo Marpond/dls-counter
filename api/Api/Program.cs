@@ -8,7 +8,17 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer
 
 var app = builder.Build();
 
-app.MapPost("/increment", async (IConnectionMultiplexer redis) =>
+app.MapGet("/counter", async (IConnectionMultiplexer redis) =>
+    {
+        var db = redis.GetDatabase();
+        var value = await db.StringGetAsync("counter");
+        return value.TryParse(out int count) ? Results.Ok(count) : Results.BadRequest();
+    })
+    .WithName("Get")
+    .WithOpenApi()
+    .Produces(StatusCodes.Status200OK);
+
+app.MapPost("/counter/increment", async (IConnectionMultiplexer redis) =>
     {
         var enabled = bool.TryParse(
             Environment.GetEnvironmentVariable("INCREMENT"),
@@ -24,7 +34,7 @@ app.MapPost("/increment", async (IConnectionMultiplexer redis) =>
     })
     .WithName("Increment")
     .WithOpenApi()
-    .Produces<long>(StatusCodes.Status200OK) //the default response is 200 OK, but I explicitly write it here for improved readability.
+    .Produces(StatusCodes.Status200OK)
     .Produces(StatusCodes.Status403Forbidden);
 
 app.Run();
