@@ -8,6 +8,15 @@ builder.Services.AddSingleton<IConnectionMultiplexer>(_ => ConnectionMultiplexer
 
 var app = builder.Build();
 
+app.MapGet("/features", () =>
+    {
+        var features = builder.Configuration.GetSection("Features").Get<Dictionary<string, bool>>();
+        return Results.Ok(features);
+    })
+    .WithName("Features")
+    .WithOpenApi()
+    .Produces(StatusCodes.Status200OK);
+
 app.MapGet("/counter", async (IConnectionMultiplexer redis) =>
     {
         var db = redis.GetDatabase();
@@ -16,14 +25,12 @@ app.MapGet("/counter", async (IConnectionMultiplexer redis) =>
     })
     .WithName("Get")
     .WithOpenApi()
-    .Produces(StatusCodes.Status200OK);
+    .Produces(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status400BadRequest);
 
 app.MapPost("/counter/increment", async (IConnectionMultiplexer redis) =>
     {
-        var enabled = bool.TryParse(
-            Environment.GetEnvironmentVariable("INCREMENT"),
-            out var flag
-        ) && flag;
+        var enabled = builder.Configuration.GetValue<bool>("Features:Increment");
 
         if (!enabled)
             return Results.StatusCode(StatusCodes.Status403Forbidden);

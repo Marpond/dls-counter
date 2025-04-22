@@ -3,8 +3,6 @@
     build:
       context: .
       dockerfile: api/Api/Dockerfile
-    env_file:
-      - api/Api/.env
     depends_on:
       - redis
     ports:
