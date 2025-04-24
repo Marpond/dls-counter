@@ -9,7 +9,6 @@ function App() {
       <h1>The Arbitrary Counter Service</h1>
       <div className="card">
         <h3>Count: {count}</h3>
-        <p>Test-change-and-merge</p>
       </div>
     </>
   )
