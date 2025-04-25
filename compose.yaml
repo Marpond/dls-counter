@@ -5,6 +5,7 @@
       dockerfile: api/Api/Dockerfile
     depends_on:
       - redis
+      - mongo
     ports:
       - "8080:8080"
 
@@ -18,3 +19,20 @@
       timeout: 10s
       start_period: 5s
       retries: 5
+
+  mongo:
+    image: mongo:latest
+    restart: unless-stopped
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongo", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      start_period: 5s
+      retries: 5
+
+volumes:
+  mongo-data:
