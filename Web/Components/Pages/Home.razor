@@ -1,0 +1,66 @@
+﻿@page "/"
+@rendermode InteractiveServer
+
+@inject ApiService ApiService
+
+<PageTitle>Counter</PageTitle>
+
+<h1>Counter</h1>
+
+@if (ErrorMessage is not null)
+{
+    <p style="color:red;">@ErrorMessage</p>
+}
+else if (Count is null)
+{
+    <p>Loading...</p>
+}
+else
+{
+    <p>Current count: @Count</p>
+    <button @onclick="IncrementCounter" disabled="@(!CanIncrement)">Increment</button>
+}
+
+@code {
+    private int? Count;
+    private bool CanIncrement;
+    private string? ErrorMessage;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            // Load initial counter value
+            Count = await ApiService.GetCounterAsync();
+
+            // Load feature flags
+            var features = await ApiService.GetFeaturesAsync();
+            CanIncrement = features.TryGetValue("Increment", out var enabled) && enabled;
+        }
+        catch (HttpRequestException)
+        {
+            ErrorMessage = "Failed to load data.";
+        }
+    }
+
+    private async Task IncrementCounter()
+    {
+        try
+        {
+            var result = await ApiService.IncrementCounterAsync();
+            if (result == null)
+            {
+                // 403 received => feature is now disabled
+                CanIncrement = false;
+            }
+            else
+            {
+                Count = result;
+            }
+        }
+        catch (HttpRequestException)
+        {
+            ErrorMessage = "Failed to increment counter.";
+        }
+    }
+}
