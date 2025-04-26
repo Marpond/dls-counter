@@ -1,0 +1,39 @@
+name: Auto Merge on Approval (feature/chore branches)
+
+on:
+  pull_request_review:
+    types: [submitted]  # Trigger when a review is submitted
+
+jobs:
+  auto-merge:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+
+    steps:
+    - name: Check pull request mergeable status
+      id: pr-details
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const pr = await github.pulls.get({
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            pull_number: context.payload.pull_request.number
+          });
+          return pr.data.mergeable;
+
+    - name: Enable auto-merge
+      if: |
+        github.event.review.state == 'approved' &&
+        (
+          startsWith(github.event.pull_request.base.ref, 'feature/') ||
+          startsWith(github.event.pull_request.base.ref, 'chore/')
+        ) &&
+        steps.pr-details.outputs.result == 'true'
+      uses: peter-evans/enable-pull-request-automerge@v3
+      with:
+        token: ${{ secrets.GITHUB_TOKEN }}
+        pull-request-number: ${{ github.event.pull_request.number }}
+        merge-method: squash

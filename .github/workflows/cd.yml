@@ -1,0 +1,57 @@
+name: CD - Build and Push Docker Images
+
+on:
+  # Trigger when a Pull Request targeting the main branch is closed
+  pull_request:
+    types:
+      - closed
+    branches:
+      - main
+
+jobs:
+  build-and-push:
+    # Add condition: Only run this job if the Pull Request was merged
+    if: github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+
+    permissions:
+      contents: read
+      packages: write   # Needed to push to GitHub Container Registry
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Login to GitHub Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract short commit SHA
+      id: vars
+      run: echo "sha_short=$(git rev-parse --short=7 HEAD)" >> $GITHUB_ENV
+
+    - name: Set lowercase repo owner
+      id: repo
+      run: echo "repo_owner_lowercase=$(echo '${{ github.repository_owner }}' | tr '[:upper:]' '[:lower:]')" >> $GITHUB_ENV
+
+    - name: Build and Push API Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: Api/Dockerfile
+        push: true
+        tags: ghcr.io/${{ env.repo_owner_lowercase }}/dls-counter-api:${{ env.sha_short }}
+
+    - name: Build and Push Web Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        file: Web/Dockerfile
+        push: true
+        tags: ghcr.io/${{ env.repo_owner_lowercase }}/dls-counter-web:${{ env.sha_short }}

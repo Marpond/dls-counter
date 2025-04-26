@@ -1,0 +1,31 @@
+name: CI - Build and Test API
+
+on:
+  push:
+    branches:
+      - '**/api'
+  pull_request:
+    branches:
+      - '**/api'
+
+jobs:
+  build-api:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build API project
+      run: dotnet build Api/Api.csproj --configuration Release
+
+    - name: Run API Tests (Fake)
+      run: echo "Pretending to run API tests..."

@@ -1,0 +1,31 @@
+name: CI - Build and Test Web
+
+on:
+  push:
+    branches:
+      - '**/web'
+  pull_request:
+    branches:
+      - '**/web'
+
+jobs:
+  build-web:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v4
+      with:
+        dotnet-version: '8.0.x'
+
+    - name: Restore dependencies
+      run: dotnet restore
+
+    - name: Build Web project
+      run: dotnet build Web/Web.csproj --configuration Release
+
+    - name: Run Web Tests (Fake)
+      run: echo "Pretending to run Web tests..."
