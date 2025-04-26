@@ -2,7 +2,7 @@
   api:
     build:
       context: .
-      dockerfile: api/Api/Dockerfile
+      dockerfile: Api/Dockerfile
     depends_on:
       - redis
       - mongo
