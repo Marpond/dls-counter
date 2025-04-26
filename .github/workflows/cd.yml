@@ -1,17 +1,13 @@
 name: CD - Build and Push Docker Images
 
 on:
-  # Trigger when a Pull Request targeting the main branch is closed
-  pull_request:
-    types:
-      - closed
+  # Trigger whenever a new commit lands in the main branch (direct push or PR merge)
+  push:
     branches:
       - main
 
 jobs:
   build-and-push:
-    # Add condition: Only run this job if the Pull Request was merged
-    if: github.event.pull_request.merged == true
     runs-on: ubuntu-latest
 
     permissions:
