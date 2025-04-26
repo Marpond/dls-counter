@@ -1,39 +1,86 @@
-name: Auto Merge on Approval (feature/chore branches)
+name: Auto Merge
 
 on:
-  pull_request_review:
-    types: [submitted]  # Trigger when a review is submitted
+  # Trigger on various Pull Request activities relevant to its readiness state
+  pull_request_target:
+    types:
+      - labeled        # When a label is added
+      - unlabeled      # When a label is removed (in case 'automerge' is removed)
+      - synchronize    # When new commits are pushed to the PR branch
+      - opened         # When a PR is opened
+      - edited         # When PR title/body is edited (might change checks)
+      - ready_for_review # When a draft PR is marked as ready
+      - reopened       # When a closed PR is reopened
+      - unlocked       # When a locked PR is unlocked
+
+  # Trigger when status checks or check suites complete (important for reacting to CI results)
+  check_suite:
+    types:
+      - completed
+
+  # Optional: Trigger specifically on review submission/dismissal
+  # pull_request_review:
+  #   types:
+  #     - submitted
+  #     - dismissed
+
+  # Optional: Trigger on commit status updates (can be more granular but potentially noisier)
+  # status: {}
 
 jobs:
-  auto-merge:
+  automerge:
     runs-on: ubuntu-latest
+
+    # IMPORTANT: Set permissions for the GITHUB_TOKEN
+    # 'pull-requests: write' is needed to merge PRs and manage labels.
+    # 'contents: write' is needed to delete the branch after merge.
     permissions:
-      contents: write
       pull-requests: write
+      contents: write
 
     steps:
-    - name: Check pull request mergeable status
-      id: pr-details
-      uses: actions/github-script@v6
-      with:
-        script: |
-          const pr = await github.pulls.get({
-            owner: context.repo.owner,
-            repo: context.repo.repo,
-            pull_number: context.payload.pull_request.number
-          });
-          return pr.data.mergeable;
+      - name: Automerge PR
+        # Use a trusted and well-maintained action for auto-merging
+        uses: pascalgn/automerge-action@v0.16.3 # Check for the latest version
+        env:
+          # The GITHUB_TOKEN is automatically provided by GitHub Actions
+          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
 
-    - name: Enable auto-merge
-      if: |
-        github.event.review.state == 'approved' &&
-        (
-          startsWith(github.event.pull_request.base.ref, 'feature/') ||
-          startsWith(github.event.pull_request.base.ref, 'chore/')
-        ) &&
-        steps.pr-details.outputs.result == 'true'
-      uses: peter-evans/enable-pull-request-automerge@v3
-      with:
-        token: ${{ secrets.GITHUB_TOKEN }}
-        pull-request-number: ${{ github.event.pull_request.number }}
-        merge-method: squash
+          # --- CORE CONFIGURATION ---
+          # Set the merge method to squash
+          MERGE_METHOD: squash
+
+          # --- CONDITIONS FOR MERGING ---
+          # Only merge PRs that have this specific label
+          MERGE_LABELS: automerge
+
+          # Optional: Specify the number of approvals required (if not set via branch protection)
+          # MERGE_REQUIRED_APPROVALS: 1
+
+          # Optional: List labels that prevent merging (e.g., 'do-not-merge', 'wip')
+          # MERGE_FORBIDDEN_LABELS: wip,do-not-merge
+
+          # Optional: Require all check suites/runs to be successful
+          # This is usually enabled by default by the action if branch protection requires it,
+          # but you can enforce it explicitly if needed.
+          # MERGE_REQUIRED_CHECKS: true # Often implicitly handled via branch protection
+
+          # --- ACTIONS AFTER MERGING ---
+          # Delete the head branch after successfully merging
+          MERGE_DELETE_BRANCH: true
+
+          # Remove the 'automerge' label after merging (good practice)
+          MERGE_REMOVE_LABELS: automerge
+
+          # --- OTHER OPTIONS ---
+          # Optional: Update the PR branch if it's behind the base branch. Use with caution.
+          # Common methods: 'merge' or 'rebase'. Rebasing can cause issues with many commits/long-running PRs.
+          # UPDATE_METHOD: merge
+
+          # Optional: Customize commit message for the squash merge
+          # MERGE_SQUASH_COMMIT_MESSAGE: "{pull_request_title} (#{pull_request_number})"
+          # MERGE_SQUASH_COMMIT_DESCRIPTION: "{pull_request_body}" # Or list of commit messages
+
+          # Optional: Handle retries for transient GitHub API issues
+          # MERGE_RETRIES: 6
+          # MERGE_RETRY_SLEEP: 10000 # 10 seconds in milliseconds
