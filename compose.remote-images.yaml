@@ -1,0 +1,15 @@
+services:
+  api:
+    image: ghcr.io/marpond/dls-counter-api:${IMAGE_VER}
+    depends_on:
+      - redis
+      - mongo
+    ports:
+      - "8080:8080"
+
+  web:
+    image: ghcr.io/marpond/dls-counter-web:${IMAGE_VER}
+    depends_on:
+      - api
+    ports:
+      - "8081:8080"
