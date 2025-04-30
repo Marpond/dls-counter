@@ -5,6 +5,11 @@ Accept: application/json
 
 ###
 
+POST {{Api_HostAddress}}/counter/decrement
+Accept: application/json
+
+###
+
 GET {{Api_HostAddress}}/counter
 
 ###

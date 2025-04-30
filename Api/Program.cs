@@ -54,4 +54,18 @@ app.MapPost("/counter/increment", async (IConnectionMultiplexer redis, FeatureFl
     .Produces(StatusCodes.Status200OK)
     .Produces(StatusCodes.Status403Forbidden);
 
+app.MapPost("/counter/decrement", async (IConnectionMultiplexer redis, FeatureFlagRepository repo) =>
+    {
+        if (!await repo.GetFeatureAsync("Decrement"))
+            return Results.StatusCode(StatusCodes.Status403Forbidden);
+
+        var db = redis.GetDatabase();
+        var newValue = await db.StringDecrementAsync("counter");
+        return Results.Ok(newValue);
+    })
+    .WithName("DecrementCounter")
+    .WithOpenApi()
+    .Produces(StatusCodes.Status200OK)
+    .Produces(StatusCodes.Status403Forbidden);
+
 app.Run();
