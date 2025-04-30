@@ -1,18 +1,14 @@
 name: CI - Build and Test Web
 
 on:
-  push:
-    branches:
-      - '*web*'
   pull_request:
-    branches:
-      - '*web*'
-      - 'feature/*'
+    types: [ labeled ]
 
 jobs:
   build-web:
+    if: ${{ github.event.label.name == 'web' }}
     runs-on: ubuntu-latest
-
+    
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
