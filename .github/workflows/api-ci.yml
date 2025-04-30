@@ -3,10 +3,10 @@ name: CI - Build and Test API
 on:
   push:
     branches:
-      - '**/api'
+      - '*api*'
   pull_request:
     branches:
-      - '**/api'
+      - '*api*'
 
 jobs:
   build-api:
