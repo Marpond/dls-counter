@@ -7,9 +7,18 @@ on:
   pull_request:
     branches:
       - '*web*'
+      - 'feature/**'
 
 jobs:
   build-web:
+    if: |
+      github.event_name == 'push' ||
+      (
+        github.event_name == 'pull_request' &&
+        (
+          contains(github.head_ref, 'web')
+        )
+      )
     runs-on: ubuntu-latest
 
     steps:
