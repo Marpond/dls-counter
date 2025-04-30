@@ -43,9 +43,8 @@ jobs:
         # Use a trusted and well-maintained action for auto-merging
         uses: pascalgn/automerge-action@v0.16.3 # Check for the latest version
         env:
-          # The GITHUB_TOKEN is automatically provided by GitHub Actions
-          GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-
+          GITHUB_TOKEN: "${{ secrets.AUTO_MERGE_PAT }}"
+          
           # --- CORE CONFIGURATION ---
           # Set the merge method to squash
           MERGE_METHOD: squash
