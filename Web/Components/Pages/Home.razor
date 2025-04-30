@@ -19,11 +19,13 @@ else
 {
     <p>Current count: @Count</p>
     <button @onclick="IncrementCounter" disabled="@(!CanIncrement)">Increment</button>
+    <button @onclick="DecrementCounter" disabled="@(!CanDecrement)">Increment</button>
 }
 
 @code {
     private int? Count;
     private bool CanIncrement;
+    private bool CanDecrement;
     private string? ErrorMessage;
 
     protected override async Task OnInitializedAsync()
@@ -35,7 +37,8 @@ else
 
             // Load feature flags
             var features = await ApiService.GetFeaturesAsync();
-            CanIncrement = features.TryGetValue("Increment", out var enabled) && enabled;
+            CanIncrement = features.TryGetValue("Increment", out var increment) && increment;
+            CanDecrement = features.TryGetValue("Decrement", out var decremet) && decremet;
         }
         catch (HttpRequestException)
         {
@@ -52,6 +55,27 @@ else
             {
                 // 403 received => feature is now disabled
                 CanIncrement = false;
+            }
+            else
+            {
+                Count = result;
+            }
+        }
+        catch (HttpRequestException)
+        {
+            ErrorMessage = "Failed to increment counter.";
+        }
+    }
+    
+    private async Task DecrementCounter()
+    {
+        try
+        {
+            var result = await ApiService.DecrementCounterAsync();
+            if (result == null)
+            {
+                // 403 received => feature is now disabled
+                CanDecrement = false;
             }
             else
             {

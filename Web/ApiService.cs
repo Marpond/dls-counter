@@ -32,4 +32,19 @@ public class ApiService(HttpClient httpClient)
         var newCount = await response.Content.ReadFromJsonAsync<int>();
         return newCount;
     }
+    
+    public async Task<int?> DecrementCounterAsync()
+    {
+        var response = await httpClient.PostAsync("/counter/decrement", null);
+
+        if (response.StatusCode == System.Net.HttpStatusCode.Forbidden)
+        {
+            return null;
+        }
+
+        response.EnsureSuccessStatusCode();
+
+        var newCount = await response.Content.ReadFromJsonAsync<int>();
+        return newCount;
+    }
 }
