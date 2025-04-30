@@ -3,10 +3,10 @@ name: CI - Build and Test Web
 on:
   push:
     branches:
-      - '**/web'
+      - '*web*'
   pull_request:
     branches:
-      - '**/web'
+      - '*web*'
 
 jobs:
   build-web:
