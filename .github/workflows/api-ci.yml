@@ -1,15 +1,12 @@
 name: CI - Build and Test API
 
 on:
-  push:
-    branches:
-      - '*api*'
   pull_request:
-    branches:
-      - '*api*'
+    types: [ labeled ]
 
 jobs:
-  build-api:
+  build-web:
+    if: ${{ github.event.label.name == 'api' }}
     runs-on: ubuntu-latest
 
     steps:
