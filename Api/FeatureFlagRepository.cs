@@ -8,7 +8,7 @@ public class FeatureSettings
 {
     [BsonId]
     [BsonRepresentation(BsonType.ObjectId)]
-    public string Id { get; set; }
+    public required string Id { get; set; }
 
     [BsonElement("Features")]
     public FeatureFlags Features { get; set; } = null!;
@@ -29,12 +29,13 @@ public class FeatureFlagRepository
 
     public FeatureFlagRepository(
         string connectionString = "mongodb://mongo:27017",
-        string databaseName   = "myappdb",
-        string collectionName = "settings")
+        string databaseName = "myappdb",
+        string collectionName = "settings"
+    )
     {
-        var client   = new MongoClient(connectionString);
+        var client = new MongoClient(connectionString);
         var database = client.GetDatabase(databaseName);
-        Collection  = database.GetCollection<FeatureSettings>(collectionName);
+        Collection = database.GetCollection<FeatureSettings>(collectionName);
     }
 
     public async Task<bool> GetFeatureAsync(string featureName)
